@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -49,10 +50,21 @@ namespace EFCoreSoftDeleteTest
                 db.Remove(student.Addresses.FirstOrDefault(p => p.Id == 2));
 
                 //await db.SaveChangesAsync(); // Works fine of course
+
                 await db.SaveChangesWithSoftDeleteAsync(); // IsDeleted is set to true, but object is still present in ICollection<Address> on Student
 
                 DisplayStudent(student);
 
+            }
+
+            using (var dbFresh = new AppDbContext())
+            {
+                Console.WriteLine("** NEW CONTEXT **\n");                
+
+                var studentFresh = await dbFresh.Students.Include(s => s.Addresses).FirstOrDefaultAsync(p => p.Id == 1);
+
+                // Works absolutely fine (as expected) //
+                DisplayStudent(studentFresh);
             }
 
             Console.ReadKey();
